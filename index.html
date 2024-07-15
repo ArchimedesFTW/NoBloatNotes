@@ -156,9 +156,10 @@
             document.getElementById('note').value = note;
         }
 
-        function deleteNote(index) {
+        function deleteNote(displayedIndex) {
             const notes = JSON.parse(localStorage.getItem('notes')) || [];
-            notes.splice(index, 1);
+            const originalIndex = notes.length - 1 - displayedIndex; // Reverse the index to get the original index
+            notes.splice(originalIndex, 1);
             localStorage.setItem('notes', JSON.stringify(notes));
             displayNotes();
         }
