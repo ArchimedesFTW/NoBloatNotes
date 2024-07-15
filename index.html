@@ -70,13 +70,16 @@
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            max-height: 30vh;
         }
         li span {
             display: inline-block;
             cursor: pointer;
-            word-wrap: break-word;
-            white-space: normal; 
-            max-width: 98%; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 98%;
+            max-height: 30vh;
         }
         li:hover {
             background-color: #e9ecef;
