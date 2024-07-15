@@ -59,6 +59,8 @@
         ul {
             list-style-type: none;
             padding: 0;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
         }
         li {
             position: relative;
@@ -103,6 +105,7 @@
             <textarea id="note" placeholder="Write your notes here..."></textarea>
             <button onclick="saveNote()">Save Note</button>
             <button class="clear-all" onclick="clearAllNotes()">Clear All Notes</button>
+            <!-- TODO show list of shortcuts -->
         </div>
         <div class="note-list">
             <h1>Notes</h1>
@@ -110,6 +113,8 @@
         </div>
     </div>
     <script>
+        let selectedNoteIndex = -1;
+
         function saveNote() {
             const note = document.getElementById('note').value;
             if (note.trim() === '') {
@@ -122,6 +127,7 @@
             localStorage.setItem('notes', JSON.stringify(notes));
             document.getElementById('note').value = '';
             displayNotes();
+            scrollToTopNote();
         }
 
         function displayNotes() {
@@ -134,6 +140,7 @@
             notesList.innerHTML = '';
             notes.forEach((note, index) => {
                 const li = document.createElement('li');
+                li.tabIndex = index;
 
                 // Create a span element to display the note text
                 const noteText = document.createElement('span');
@@ -171,9 +178,10 @@
             }
         }
 
-        // Load notes on page load
+        // Init for website
         window.onload = function() {
-            displayNotes();
+            displayNotes(); // Load notes
+            setFocus();  // Set focus on textfield to start typing
         }
 
         // Allow saving note with Ctrl + Enter
@@ -181,7 +189,55 @@
             if(event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                 saveNote();
             }
+
+            // Prevent the rest of the shortcusts from messing with the note taking.
+            isTextAreaFocused = document.activeElement.id === "note";
+            hasWrittenText = document.getElementById('note').value.trim() !== '';
+            if (isTextAreaFocused && hasWrittenText) {
+                return
+            }
+
+            // Enable arrow navigation with keys
+            if (selectedNoteIndex === -1 && event.key === "ArrowRight") {
+                selectedNoteIndex = 0;
+                setFocus()
+            } else if (selectedNoteIndex >= 0) {
+                if (event.key === "ArrowUp") {
+                    selectedNoteIndex = Math.max(0, selectedNoteIndex-1);
+                    setFocus()
+                } else if (event.key === "ArrowDown") {
+                    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+                    selectedNoteIndex = Math.min(notes.length -1, selectedNoteIndex+1)
+                    setFocus()
+                } else if (event.key === "ArrowLeft") {
+                    selectedNoteIndex = -1;
+                    setFocus() // Goes to text field
+                }
+            }
         });
+
+        /**
+         * Set focus to a specific element using selectedNoteIndex
+         */
+        function setFocus() {
+            console.log(selectedNoteIndex)
+            if (selectedNoteIndex === -1) {
+                document.getElementById('note').focus();
+            } else {
+                // Select the element in the notes list
+                const notesList = document.getElementById('notesList');
+                const notes = notesList.getElementsByTagName('li');
+                document.activeElement.blur();
+                notes[selectedNoteIndex].focus();  
+                // Scroll to the selected note
+                notes[selectedNoteIndex].scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+            }
+        }
+
+        function scrollToTopNote() {
+            const notesList = document.getElementById('notesList');
+            notesList.scrollTop = 0;
+        }   
     </script>
 </body>
 </html>
