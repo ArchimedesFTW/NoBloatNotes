@@ -100,11 +100,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="note-section">
+        <div id="noteControls" class="note-section">
             <h1>Create Note</h1>
-            <textarea id="note" placeholder="Write your notes here..."></textarea>
-            <button onclick="saveNote()">Save Note</button>
-            <button class="clear-all" onclick="clearAllNotes()">Clear All Notes</button>
+            <textarea id="note" tabindex="0" placeholder="Write your notes here..."></textarea>
+            <button tabindex="1" onclick="saveNote()">Save Note</button>
+            <button tabindex="2" class="clear-all" onclick="clearAllNotes()">Clear All Notes</button>
             <!-- TODO show list of shortcuts -->
         </div>
         <div class="note-list">
@@ -198,35 +198,91 @@
             }
 
             // Enable arrow navigation with keys
-            if (selectedNoteIndex === -1 && event.key === "ArrowRight") {
+            const hasSelectedNote = selectedNoteIndex >= 0;
+            if (!hasSelectedNote && event.key === "ArrowRight") {
                 selectedNoteIndex = 0;
                 setFocus()
-            } else if (selectedNoteIndex >= 0) {
-                if (event.key === "ArrowUp") {
-                    selectedNoteIndex = Math.max(0, selectedNoteIndex-1);
-                    setFocus()
-                } else if (event.key === "ArrowDown") {
-                    const notes = JSON.parse(localStorage.getItem('notes')) || [];
-                    selectedNoteIndex = Math.min(notes.length -1, selectedNoteIndex+1)
-                    setFocus()
-                } else if (event.key === "ArrowLeft") {
-                    selectedNoteIndex = -1;
-                    setFocus() // Goes to text field
-                }
+            } else if (hasSelectedNote) {
+                doNotesNavigation(event);
+            } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                doControlsNavigation(event);
             }
         });
+
+        function doNotesNavigation(event) {
+            // Check arrow navigation
+            if (event.key === "ArrowUp") {
+                selectedNoteIndex = Math.max(0, selectedNoteIndex-1);
+                setFocus()
+            } else if (event.key === "ArrowDown") {
+                const notes = JSON.parse(localStorage.getItem('notes')) || [];
+                selectedNoteIndex = Math.min(notes.length -1, selectedNoteIndex+1)
+                setFocus()
+            } else if (event.key === "ArrowLeft") {
+                selectedNoteIndex = -1;
+                setFocus() // Goes to text field
+            }
+
+            // Delete note with delete key
+            // Possibly add confirm('Are you sure you want to delete this note?'), but this was more annoying than helpful
+            if (event.key === "Delete") {
+                deleteNote(selectedNoteIndex);
+                notes = JSON.parse(localStorage.getItem('notes')) || [];
+                selectedNoteIndex = notes.length ? Math.min(selectedNoteIndex, notes.length - 1) : -1;
+                setFocus()
+            }
+        }
+
+        //* Arrow navigation for the controls
+        function doControlsNavigation(event) {
+            const noteControls = document.getElementById('noteControls');
+            const focusableElements = noteControls.querySelectorAll('button, textarea');
+            const focusedElement = document.activeElement;
+            const focusedIndex = Array.from(focusableElements).indexOf(focusedElement);
+
+            // Check if not focused on any element
+            if (focusedElement === document.body) {
+                document.getElementById('note').focus();
+                return
+            }
+
+            // Check if the focused element is in the controls
+            if (focusedIndex === -1) {
+                return
+            }
+
+            if (event.key === "ArrowDown") {            
+                const nextIndex = focusedIndex + 1;
+                if (nextIndex < focusableElements.length) {
+                    focusableElements[nextIndex].focus();
+                }
+            } else if (event.key === "ArrowUp") {
+                const nextIndex = focusedIndex - 1;
+                if (nextIndex >= 0) {
+                    focusableElements[nextIndex].focus();
+                }
+            }
+        }
+
+        // Reset selectedNoteIndex when clicking on the text field
+        // Disabled for now as I think it's better to go to the las
+        // document.getElementById('note').addEventListener('focus', () => {
+        //     selectedNoteIndex = -1;
+        // });
 
         /**
          * Set focus to a specific element using selectedNoteIndex
          */
         function setFocus() {
-            console.log(selectedNoteIndex)
+            const notes = notesList.getElementsByTagName('li');
+            // Ensure that the selectedNoteIndex is within the notes array
+            selectedNoteIndex = Math.min(notes.length - 1, selectedNoteIndex);
+
             if (selectedNoteIndex === -1) {
                 document.getElementById('note').focus();
             } else {
                 // Select the element in the notes list
                 const notesList = document.getElementById('notesList');
-                const notes = notesList.getElementsByTagName('li');
                 document.activeElement.blur();
                 notes[selectedNoteIndex].focus();  
                 // Scroll to the selected note
