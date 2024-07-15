@@ -205,7 +205,8 @@
             } else if (hasSelectedNote) {
                 doNotesNavigation(event);
             } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-                doControlsNavigation(event);
+                doNotesNavigation(event); // Testing if this is better than the controls navigation
+                // doControlsNavigation(event);
             }
         });
 
@@ -230,6 +231,14 @@
                 notes = JSON.parse(localStorage.getItem('notes')) || [];
                 selectedNoteIndex = notes.length ? Math.min(selectedNoteIndex, notes.length - 1) : -1;
                 setFocus()
+            }
+
+            // Load note with Enter key
+            if (event.key === "Enter") {
+                const notes = JSON.parse(localStorage.getItem('notes')) || [];
+                if (selectedNoteIndex >= 0) {
+                    loadNote(notes[notes.length - 1 - selectedNoteIndex]);
+                }
             }
         }
 
