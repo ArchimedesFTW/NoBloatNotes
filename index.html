@@ -25,9 +25,10 @@
             flex: 1;
             background-color: #fff;
             border-right: 1px solid #ccc;
+            width: 66.66666667%;
         }
         .note-list {
-            width: 300px;
+            width: 33.33333333%;
             background-color: #fafafa;
         }
         textarea {
@@ -134,8 +135,9 @@
             notes.forEach((note, index) => {
                 const li = document.createElement('li');
 
+                // Create a span element to display the note text
                 const noteText = document.createElement('span');
-                noteText.textContent = note;
+                noteText.innerHTML = note.replace(/\n/g, '<br>');  // Replace new line characters with <br> tag
                 noteText.onclick = () => loadNote(note);
 
                 const deleteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
